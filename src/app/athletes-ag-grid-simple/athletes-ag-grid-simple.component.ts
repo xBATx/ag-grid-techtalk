@@ -1,79 +1,74 @@
 import { Component } from '@angular/core';
 import {
   CellDoubleClickedEvent,
-  CellKeyDownEvent,
-  ColDef, FullWidthCellKeyDownEvent,
-  GridReadyEvent,
+  ColDef,
+  GridReadyEvent, RowClickedEvent,
 } from 'ag-grid-community';
 import 'ag-grid-enterprise';
-import { CustomGroupCellRenderer } from './custom-group-cell-renderer.component';
 import {IAthlete} from "../IAthlete";
 import {AgGridModule} from "ag-grid-angular";
 import data from '../athletes.json'
 import {CommonModule} from "@angular/common";
+import {CountryCellRendererComponent} from "./country-cell-renderer.component";
 
 
 @Component({
   selector: 'app-athletes-ag-grid',
-  templateUrl: './athletes-ag-grid.component.html',
-  styleUrls: ['./athletes-ag-grid.component.scss'],
+  templateUrl: './athletes-ag-grid-simple.component.html',
+  styleUrls: ['./athletes-ag-grid-simple.component.scss'],
   standalone: true,
   imports: [CommonModule, AgGridModule]
 })
-export class AthletesAgGridComponent {
+export class AthletesAgGridSimpleComponent {
   public columnDefs: ColDef[] = [
     {
+      headerName: 'Athlete',
+      field: 'athlete',
+      minWidth: 50,
+      maxWidth: 150,
+    },
+    {
+      headerName: 'Total',
+      valueGetter: params => params.data.gold + params.data.silver + params.data.silver,
+      cellRenderer: (params: any) => '<b>' + params.value + '</b>'
+    },
+    {
+      headerName: 'Percentage',
+      valueGetter: params => params.data.total * 100 / this.allMedalsCount,
+      valueFormatter: params => `${Number(params.value).toFixed(2)} %`,
+      cellRenderer: (params: any) => '<b>' + params.valueFormatted + '</b>'
+    },
+    {
       field: 'country',
-      rowGroup: true,
-      hide: true,
+      cellRenderer: CountryCellRendererComponent
     },
     {
       field: 'year',
-      rowGroup: true,
-      hide: true,
-    },
-    {
-      field: 'athlete',
-    },
-    {
-      field: 'total',
-      aggFunc: 'sum',
-    },
+      minWidth: 50,
+      maxWidth: 100,
+    }
   ];
-  public autoGroupColumnDef: ColDef = {
-    cellRenderer: CustomGroupCellRenderer,
-  };
+
   public defaultColDef: ColDef = {
     flex: 1,
     minWidth: 120,
     resizable: true,
   };
-  public groupDefaultExpanded = 1;
+
   public rowData!: IAthlete[];
+  public allMedalsCount!: number;
 
   onCellDoubleClicked(params: CellDoubleClickedEvent<IAthlete, any>) {
-    if (params.colDef.showRowGroup) {
-      params.node.setExpanded(!params.node.expanded);
-    }
+    console.log(`double clicked on ${params.value}`);
   }
 
-  onCellKeyDown(params: CellKeyDownEvent<any, any> | FullWidthCellKeyDownEvent<any, any>) {
-    if (!('colDef' in params)) {
-      return;
-    }
-
-    if (!(params.event instanceof KeyboardEvent)) {
-      return;
-    }
-    if (params.event.code !== 'Enter') {
-      return;
-    }
-    if (params.colDef.showRowGroup) {
-      params.node.setExpanded(!params.node.expanded);
-    }
+  onRowClicked(params: RowClickedEvent<IAthlete, any>) {
+    console.log(params.data?.athlete);
   }
 
   onGridReady(params: GridReadyEvent<IAthlete>) {
+    const athletes = data as IAthlete[];
+    this.allMedalsCount = athletes.map(a => a.total).reduce((acc, t) => acc + t, 0);
     this.rowData = data as IAthlete[];
   }
 }

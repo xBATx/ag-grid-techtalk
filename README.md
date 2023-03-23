@@ -1,5 +1,8 @@
 # AngularTables
 
+This repository contains sources for a tech talk about brief introduction for using tables and grids.
+On various examples, simple use-cases are covered for using both ag-grid or angular material-table.
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.2.4.
 
 ## Development server
